@@ -1,0 +1,12 @@
+{
+    "list length": 3,
+    "max depth": 3,
+    "max pages": 10,
+    "number of urls": 3,
+    "pages": [
+        {
+            "url": "https://harrypotter.fandom.com/wiki/Main_Page"
+        }
+    ],
+    "search mode": "DFS"
+}

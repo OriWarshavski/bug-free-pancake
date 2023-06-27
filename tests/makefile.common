@@ -1,0 +1,45 @@
+CXX = g++
+CC = $(CXX)
+
+CFLAGS += -pedantic -Wall -Werror -pthread
+CFLAGS += -g3
+
+
+LDLIBS += -lgumbo -lcurl -lcurlpp -lboost_regex
+
+CXXFLAGS += $(CFLAGS)
+CXXFLAGS += -std=c++17
+
+CPPFLAGS += -DDEBUG
+CPPFLAGS += -MMD -MP
+CPPFLAGS += -I$(INCLUDES_DIR)
+
+INCLUDES_DIR = ../../inc
+SOURCES_DIR = ../../src
+
+TARGET = utest
+
+all: $(TARGET)
+
+check : $(TARGET)
+	@./$(TARGET) -v
+
+$(TARGET): $(OBJECTS)
+
+recheck: clean check
+
+vala: $(TARGET)
+	@valgrind --leak-check=yes --track-origins=yes ./$(TARGET) 2> val.txt
+
+hell: $(TARGET)
+	@valgrind --tool=helgrind ./$(TARGET) 2> hell.txt
+
+ADD_TO_CLEAN += $(DEPENDS)
+
+clean:
+	@$(RM) ./$(TARGET) $(OBJECTS) $(ADD_TO_CLEAN)
+
+.PHONY : hell vala clean recheck check all
+
+DEPENDS = $(OBJECTS:%.o=%.d)
+-include $(DEPENDS)
