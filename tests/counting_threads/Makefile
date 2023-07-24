@@ -14,7 +14,7 @@ $(TARGET): $(SOURCE)
 	$(CC) -o $(TARGET) $(SOURCE) $(CFLAGS)
 
 check: $(TARGET)
-	@./$(TARGET) -v
+	@./$(TARGET)
 
 clean:
 	@$(RM) -f ./$(TARGET) *.o
