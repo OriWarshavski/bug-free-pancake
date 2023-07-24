@@ -1,35 +1,19 @@
-CXX=g++
-CC=$(CXX)
+CC = gcc
 
-CFLAGS = -pedantic -Wall -Werror
-CFLAGS += -g
-CXXFLAGS = $(CFLAGS) -std=c++17
-
-CPPFLAGS = -DDEBUG
-CPPFLAGS = -I$(INCLUDES_DIR)
+CFLAGS += -ansi -pedantic -Wall -Werror -g
+CFLAGS +=  -I$(INCLUDES_DIR) -std=c99 -lm
 
 INCLUDES_DIR = ../../inc
 SOURCES_DIR = ../../src
-INL_DIR = ../../inc/inl
 
-SOURCE := utest.cpp
-TARGET := utest
+SOURCE := test.c $(SOURCES_DIR)/algorithms.c 
+TARGET = test
 
-all: $(TARGET)
+$(TARGET): $(SOURCE)
+	$(CC) -o $(TARGET) $(SOURCE) $(CFLAGS)
 
-$(SOURCE) : $(INCLUDES_DIR)/algorithms.hpp $(INCLUDES_DIR)/generic_utils.hpp $(INL_DIR)/algorithms.hxx
+check: $(TARGET)
+	@./$(TARGET)
 
-check : $(TARGET)
-	@./$(TARGET) -v
-
-recheck: clean check
-
-clean:
+clean: 
 	@$(RM) -f ./$(TARGET) *.o
-
-
-.PHONY : make clean check recheck all
-
-make:
-	@echo 'Attend a maker faire'
-	@${TRUE}
