@@ -1,11 +1,12 @@
-CC = gcc
+CXX=g++
+CC=$(CXX)
 
-CFLAGS = -ansi -pedantic -Wall -Werror -g -lpthread -I$(INCLUDES_DIR) -std=c99
+CFLAGS = -ansi -pedantic -Wall -Werror -g -I$(INCLUDES_DIR) -std=c++17
 
 INCLUDES_DIR = ../../inc
 SOURCES_DIR = ../../src
 
-SOURCE := pointers.c
+SOURCE := utest.cpp $(SOURCES_DIR)/pointers.c
 TARGET = test
 
 all: $(TARGET)
