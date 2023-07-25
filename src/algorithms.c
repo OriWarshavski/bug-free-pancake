@@ -34,3 +34,18 @@ int squareRootBinarySearch(int a_num)
     }
     return high;
 }
+//Newton's method: root = 0.5 * (X + N/X)
+double squareRootNewton(double a_num, double a_tolerance)
+{
+    double x = a_num;
+    double root;
+    while(TRUE) {
+        root = 0.5 * (x + (a_num / x));
+        if(fabs(root - x) <= a_tolerance) {
+            break;
+        }
+        x = root;
+    }
+    return root;
+}
+

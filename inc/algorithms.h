@@ -10,3 +10,6 @@ typedef enum AlgoResult
 AlgoResult isPrimary(size_t a_num);
 
 int squareRootBinarySearch(int a_num);
+
+//Newton's method: root = 2 * (X + N/X)
+double squareRootNewton(double a_num, double a_tolerance);
