@@ -4,16 +4,16 @@
 #define NOT_ENOUGH_SPACE -1
 
 typedef enum FORMAT_TYPE {
-    DECIMAL,
+    DECIMAL = 10,
     DECIMAL_WITH_SIGN,
-    HEX,
-    BINARY
+    HEX = 16,
+    BINARY = 2
 } FORMAT_TYPE;
 
 typedef enum LEADING_TYPE {
-    NO_LEADING,
-    LEADING_SPACES,
-    LEADING_ZEROS
+    NO_LEADING = -1,
+    LEADING_SPACES = ' ',
+    LEADING_ZEROS = '0'
 } LEADING_TYPE;
 
 /** 
@@ -53,10 +53,10 @@ int bNumToStrDeciPoint(int a_lInputValue, int a_bStrLen, int a_bDecPoint, char* 
  *          in the maximum length
  *          return 0 if a_cpOutPutStr uninitialized or a_bStrLen == 0;
  */
-int bNumToStrFormat(int a_lInputValue, int a_bStrLen, int a_bDecPoint, int a_bFormat, char* a_cpOutPutStr);
+int bNumToStrFormat(int a_lInputValue, int a_bStrLen, int a_bDecPoint, FORMAT_TYPE a_bFormat, char* a_cpOutPutStr);
 
 /** 
- * @brief Builds a string of the input integer in the format was chosen and fill it if necessry
+ * @brief Builds a string of the input integer in the format was chosen and fill it if necessery
  * @param a_lInputValue: input integer
  * @param a_bStrLen: max length of the output string
  * @param a_bDecPoint: number of digits before the decimal point
@@ -69,4 +69,4 @@ int bNumToStrFormat(int a_lInputValue, int a_bStrLen, int a_bDecPoint, int a_bFo
  *          in the maximum length
  *          return 0 if a_cpOutPutStr uninitialized or a_bStrLen == 0;
  */
-int bNumToStrLeading(int a_lInputValue, int a_bStrLen, int a_bDecPoint, int a_bFormat, int a_bLeadingType, char* a_cpOutPutStr);
+int bNumToStrLeading(int a_lInputValue, int a_bStrLen, int a_bDecPoint, FORMAT_TYPE a_bFormat, LEADING_TYPE a_bLeadingType, char* a_cpOutPutStr);
