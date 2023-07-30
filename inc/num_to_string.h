@@ -40,6 +40,7 @@ int bNumToStr(int a_lInputValue, int a_bStrLen, char* a_cpOutPutStr);
  *          return 0 if a_cpOutPutStr uninitialized or a_bStrLen == 0;
  */
 int bNumToStrDeciPoint(int a_lInputValue, int a_bStrLen, int a_bDecPoint, char* a_cpOutPutStr);
+int bNumToStrDeciPointV2(int a_lInputValue, int a_bStrLen, int a_bDecPoint, char* a_cpOutPutStr);
 
 /** 
  * @brief Builds a string of the input integer in the format was chosen

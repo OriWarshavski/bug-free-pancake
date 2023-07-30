@@ -1,5 +1,5 @@
 #include "mu_test.h"
-#include "unitronics.h"
+#include "num_to_string.h"
 
 #include <stdio.h> 
 #include <string.h>
@@ -420,6 +420,38 @@ BEGIN_TEST(Q4_test9_leading_HEX)
     ASSERT_THAT(checkIfEqual(output, expected, 10) == 1);
 END_TEST
 
+///////////////////////////V2///////////////////////////////
+BEGIN_TEST(deci_point_v2)
+    char output[11];
+    char expected[11] = "12.34";
+    ASSERT_EQUAL(bNumToStrDeciPointV2(1234, 10, 2, output), 5);
+    TRACE(output);
+    ASSERT_THAT(checkIfEqual(output, expected, 5) == 1);
+
+    char expected2[11] = "0.012";
+    ASSERT_EQUAL(bNumToStrDeciPointV2(12, 10, 3, output), 5);
+    TRACE(output);
+    ASSERT_THAT(checkIfEqual(output, expected2, 5) == 1);
+
+    char expected3[11] = "-0.012";
+    ASSERT_EQUAL(bNumToStrDeciPointV2(-12, 10, 3, output), 6);
+    TRACE(output);
+    ASSERT_THAT(checkIfEqual(output, expected3, 6) == 1);
+END_TEST
+
+BEGIN_TEST(deci_point_v2_small_size)
+    char output[5];
+    char expected[5] = "????";
+    ASSERT_EQUAL(bNumToStrDeciPointV2(1234, 4, 2, output), 4);
+    TRACE(output);
+    ASSERT_THAT(checkIfEqual(output, expected, 5) == 1);
+
+    char expected2[5] = "?";
+    ASSERT_EQUAL(bNumToStrDeciPointV2(123456789, 1, 0, output), 1);
+    TRACE(output);
+    ASSERT_THAT(checkIfEqual(output, expected2, 1) == 1);
+END_TEST 
+
 TEST_SUITE("tests")
     TEST(test0_uninitialized)
     TEST(test1_zero_case)
@@ -475,4 +507,7 @@ TEST_SUITE("tests")
     TEST(Q4_test8_leading_with_point)
     TEST(Q4_test9_leading_binary)
     TEST(Q4_test9_leading_HEX)
+
+    TEST(deci_point_v2)
+    TEST(deci_point_v2_small_size)
 END_SUITE

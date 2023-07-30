@@ -1,5 +1,6 @@
 #include <stdio.h>
-#include "unitronics.h"
+#include <math.h>
+#include "num_to_string.h"
 
 #define SWAP(left, right) { \
 int temp = left;\
@@ -16,6 +17,8 @@ static void buildString(unsigned int a_unum, int a_base, int a_digitsNum, int a_
 static int countDigitsDeci(int a_num, int a_base);
 static int countDigitsUint(unsigned int a_num, int a_base);
 static void addDecimalPoint(int a_bDecPoint, int a_finalLen, char* a_cpOutPutStr);
+
+static int buildDecimalString(int a_num, int a_fPart, int a_isNegative, char* a_cpOutputStr);
 
 int bNumToStr(int a_lInputValue, int a_bStrLen, char* a_cpOutPutStr)
 {
@@ -65,6 +68,45 @@ int bNumToStrDeciPoint(int a_lInputValue, int a_bStrLen, int a_bDecPoint, char* 
         addDecimalPoint(a_bDecPoint, length, a_cpOutPutStr);
     }
     return length;
+}
+
+
+int bNumToStrDeciPointV2(int a_lInputValue, int a_bStrLen, int a_bDecPoint, char* a_cpOutPutStr)
+{
+    int leftVal, rightVal = 0;
+    int pointIndex, countRightDigits, size;
+    int isNegative = 0;
+    if(a_cpOutPutStr == NULL || a_bStrLen <= 0) {
+        return 0;
+    }
+    //no decimal point
+    if(a_bDecPoint <= 0) {
+        return bNumToStr(a_lInputValue, a_bStrLen, a_cpOutPutStr);
+    }
+
+    //there is decimal point
+    if(a_lInputValue < 0) {
+        isNegative = 1;
+        a_lInputValue = -a_lInputValue;
+    }
+
+    leftVal = a_lInputValue / pow(10, a_bDecPoint);
+    pointIndex = buildDecimalString(leftVal, 0, isNegative, a_cpOutPutStr); //---> is it ok to write into the string before check if its big enough?
+
+    //final size will be greater than a_bStrLen - return "?.."
+    size = pointIndex + 1 + a_bDecPoint;
+    if(size > a_bStrLen) {
+        buildWrongOutput(a_bStrLen, a_cpOutPutStr);
+        return a_bStrLen;
+    }
+    
+    a_cpOutPutStr[pointIndex] = '.';
+
+    rightVal = a_lInputValue % (int)pow(10, a_bDecPoint);
+
+    countRightDigits = buildDecimalString(rightVal, a_bDecPoint, 0, a_cpOutPutStr + pointIndex + 1);
+    
+    return pointIndex + countRightDigits + 1;
 }
 
 int bNumToStrFormat(int a_lInputValue, int a_bStrLen, int a_bDecPoint, FORMAT_TYPE a_bFormat, char* a_cpOutPutStr)
@@ -329,3 +371,34 @@ static void addDecimalPoint(int a_bDecPoint, int a_finalLen, char* a_cpOutPutStr
     pointIndex = a_finalLen - a_bDecPoint - 1;
     a_cpOutPutStr[pointIndex] = '.';
 }
+
+static int buildDecimalString(int a_num, int a_fPart, int a_isNegative, char* a_cpOutputStr)
+{
+    int i = 0, digit;
+    if(a_num == 0) {
+        a_cpOutputStr[0] = '0';
+        a_cpOutputStr[1] = '\0';
+        ++i;
+    }
+
+    while(a_num) {
+        digit = a_num % 10;
+        a_cpOutputStr[i] = digit + '0';
+        a_num /= 10;
+        ++i;
+    }
+    
+    for( ; i < a_fPart; ++i) {
+        a_cpOutputStr[i] = '0';
+    }
+
+    if(a_isNegative == 1) {
+        a_cpOutputStr[i] = '-';
+        ++i;
+    }
+
+    reverseString(i, a_cpOutputStr);
+    a_cpOutputStr[i] = '\0';
+    return i;
+}
+

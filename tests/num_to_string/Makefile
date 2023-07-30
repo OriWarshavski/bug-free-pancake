@@ -1,7 +1,7 @@
 CXX=g++
 CC=$(CXX)
 
-CFLAGS = -ansi -pedantic -Wall -Werror -g -I$(INCLUDES_DIR) -std=c++17
+CFLAGS = -ansi -pedantic -Wall -Werror -lm -g -I$(INCLUDES_DIR) -std=c++17
 
 INCLUDES_DIR = ../../inc
 SOURCES_DIR = ../../src
@@ -15,7 +15,7 @@ $(TARGET): $(SOURCE)
 	$(CC) -o $(TARGET) $(SOURCE) $(CFLAGS)
 
 check: $(TARGET)
-	@./$(TARGET)
+	@./$(TARGET) -v
 
 clean:
 	@$(RM) -f ./$(TARGET) *.o
