@@ -11,6 +11,42 @@
 
 #define IS_LETTER(x) (x >= 'A' && x <= 'F')
 
+void reverseSentence(char* a_input, char* a_output)
+{
+    int size, i, j = 0, end, start;
+    if(a_input == NULL || a_output == NULL || a_input[0] == '\0') {
+        a_output[0] = '\0';
+        return;
+    }
+    size = strlen(a_input);
+
+    for(i = size - 1, end = i; i >= 0; --i) {
+        if(IS_CHAR_BLANK(a_input[i]) || i == 0) {
+            start = i;
+            if(IS_CHAR_BLANK(a_input[i])) {
+                ++start;
+            }
+            while(start <= end) {
+                printf("i:%d, %c\n", i, a_input[start]);
+                a_output[j] = a_input[start];
+                ++start;
+                ++j;
+            }
+            while(i >= 0 && IS_CHAR_BLANK(a_input[i])) {
+                a_output[j] = a_input[i];
+                --i;
+                ++j;
+            }
+            if(i == 0 && j < size) {
+                a_output[j] = a_input[i];
+                --i;
+                ++j;           
+            }
+            end = i;
+        }
+    }
+    a_output[j] = '\0';
+}
 typedef enum FORMAT {
     BINARY = 2,
     DECIMAL = 10,
@@ -32,6 +68,7 @@ typedef enum FORMAT {
 //     }
 //     return 1;
 // }
+
 double convertStrToDouble(char* a_str, int a_size, FORMAT a_format)
 {
     int i, pointIndex, isPoint = 0, isNegative = 0;
@@ -72,7 +109,6 @@ double convertStrToDouble(char* a_str, int a_size, FORMAT a_format)
     //integral part
     for(; i >= 0; --i) {
         cur = a_str[i];
-        printf("%c\n", cur);
 
         if(IS_LETTER(cur)) {
             power = pow((int)a_format, pointIndex - i - 1);
@@ -93,7 +129,8 @@ double convertStrToDouble(char* a_str, int a_size, FORMAT a_format)
 
 static double binaryStrToDouble(char* a_str, int a_size)
 {
-    int i, pointIndex = a_size, isPoint = 0;
+    int i, pointIndex = a_size, isPoint = 0, isNegative = 0;
+    int carry;
     double res = 0;
 
     //find point index
@@ -104,7 +141,32 @@ static double binaryStrToDouble(char* a_str, int a_size)
             break;
         }
     }
+    //check if negative
+    if(a_str[0] == '1') {
+        isNegative = 1;
+        //flip all bits
+        for(i = 0; i < a_size; ++i) {
+            if(a_str[i] == '0') {
+                a_str[i] = '1';
+            }
+            else {
+                a_str[i] = '0';
+            }
+        }
+        //add 1
+        carry = 1;
+        for (i = a_size - 1; i >= 0; --i) {
+            if (a_str[i] == '0' && carry == 1) {
+                a_str[i] = '1';
+                carry = 0;
+            } else if (a_str[i] == '1' && carry == 1) {
+                a_str[i] = '0';
+            }
+        }
+    }
+
     i = a_size - 1;
+
     //fraction part
     if(isPoint) {
         for( ; i >= pointIndex; --i) {
@@ -118,6 +180,10 @@ static double binaryStrToDouble(char* a_str, int a_size)
         if(a_str[i] == '1') {
             res += pow(2, pointIndex - 1 - i);
         }
+    }
+
+    if(isNegative) {
+        res = -res;
     }
     return res;
 }
@@ -457,7 +523,7 @@ BEGIN_TEST(test3_Stack_push_pop_top)
 
     StackDoublesDestroy(&p);
 END_TEST
-
+/////////////////////////////////////////////////////////////////////////
 BEGIN_TEST(test1_decimalStr_to_double)
     char str[30] = "12.34";
     char str2[30] = "0.012";
@@ -498,7 +564,7 @@ BEGIN_TEST(test1_binaryStr_to_double)
 END_TEST
 
 BEGIN_TEST(test2_binaryStr_to_double)
-    char str[100] = "110.101";
+    char str[100] = "0110.101";
     double res1 = binaryStrToDouble(str, strlen(str));
     TRACE(res1);
     ASSERT_EQUAL(res1, 6.625);
@@ -581,11 +647,85 @@ BEGIN_TEST(test11_convert_by_format_to_double)
     ASSERT_EQUAL(res1, 12.5);
 END_TEST
 
-BEGIN_TEST(test12_convert_by_format_to_double)
-    char str[100] = "FFFFFFFF";
-    double res1 = convertStrToDouble(str, strlen(str), HEX);
+BEGIN_TEST(test12_binary_to_double)
+    char str[100] = "11111111";
+    double res1 = binaryStrToDouble(str, strlen(str));
     TRACE(res1);
     ASSERT_EQUAL(res1, -1);
+END_TEST
+
+//////////////////////////////////////////////////////////////////
+
+BEGIN_TEST(test1_reverse_sentence)
+    char str[100] = "hello world";
+    char output[100];
+    char expected[100] = "world hello";
+    reverseSentence(str, output);
+    TRACE(output);
+    ASSERT_EQUAL(strcmp(output, expected), 0);
+END_TEST
+
+BEGIN_TEST(test2_reverse_sentence)
+    char str[100] = " hello  world ";
+    char output[100];
+    char expected[100] = " world  hello ";
+    reverseSentence(str, output);
+    TRACE(output);
+    ASSERT_EQUAL(strcmp(output, expected), 0);
+END_TEST
+
+BEGIN_TEST(test3_reverse_sentence)
+    char str[100] = "! hello world";
+    char output[100];
+    char expected[100] = "world hello !";
+    reverseSentence(str, output);
+    TRACE(output);
+    ASSERT_EQUAL(strcmp(output, expected), 0);
+END_TEST
+
+BEGIN_TEST(test4_reverse_sentence)
+    char str[100] = "Hello, this is a sample sentence.";
+    char output[100];
+    char expected[100] = "sentence. sample a is this Hello,";
+    reverseSentence(str, output);
+    TRACE(output);
+    ASSERT_EQUAL(strcmp(output, expected), 0);
+END_TEST
+
+BEGIN_TEST(test5_reverse_sentence)
+    char str[100] = "";
+    char output[100];
+    char expected[100] = "";
+    reverseSentence(str, output);
+    TRACE(output);
+    ASSERT_EQUAL(strcmp(output, expected), 0);
+END_TEST
+
+BEGIN_TEST(test6_reverse_sentence)
+    char str[100] = "hello";
+    char output[100];
+    char expected[100] = "hello";
+    reverseSentence(str, output);
+    TRACE(output);
+    ASSERT_EQUAL(strcmp(output, expected), 0);
+END_TEST
+
+BEGIN_TEST(test7_reverse_sentence)
+    char str[100] = "\tHello\tworld!\t";
+    char output[100];
+    char expected[100] = "\tworld!\tHello\t";
+    reverseSentence(str, output);
+    TRACE(output);
+    ASSERT_EQUAL(strcmp(output, expected), 0);
+END_TEST
+
+BEGIN_TEST(test8_reverse_sentence)
+    char str[100] = "   Leading and Trailing spaces   ";
+    char output[100];
+    char expected[100] = "   spaces Trailing and Leading   ";
+    reverseSentence(str, output);
+    TRACE(output);
+    ASSERT_EQUAL(strcmp(output, expected), 0);
 END_TEST
 
 TEST_SUITE("tests")
@@ -604,7 +744,7 @@ TEST_SUITE("tests")
     TEST(test9_convert_by_format_to_double)
     TEST(test10_convert_by_format_to_double)
     TEST(test11_convert_by_format_to_double)
-    TEST(test12_convert_by_format_to_double)
+    TEST(test12_binary_to_double)
 
     TEST(test1_uninitialized)
     TEST(test2_num_of_words)
@@ -620,4 +760,15 @@ TEST_SUITE("tests")
     // TEST(test_string_to_num)
     TEST(test1_calc_phrase)
     TEST(test2_calc_phrase)
+
+    TEST(test1_reverse_sentence)
+    TEST(test2_reverse_sentence)
+    TEST(test3_reverse_sentence)
+    TEST(test4_reverse_sentence)
+    TEST(test5_reverse_sentence)
+    TEST(test6_reverse_sentence)
+    TEST(test7_reverse_sentence)
+    TEST(test8_reverse_sentence)
+
 END_SUITE
+
