@@ -25,6 +25,37 @@
 //     return 1;
 // }
 
+static double binaryStrToDouble(char* a_str, int a_size)
+{
+    int i, pointIndex = a_size, isPoint = 0;
+    double res = 0;
+
+    //find point index
+    for(i = 0; i < a_size; ++i) {
+        if(a_str[i] == '.') {
+            pointIndex = i;
+            isPoint = 1;
+            break;
+        }
+    }
+    i = a_size - 1;
+    //fraction part
+    if(isPoint) {
+        for( ; i >= pointIndex; --i) {
+            if(a_str[i] == '1') {
+                res += pow(2, pointIndex - i);
+            }
+        }
+    }
+    //integral part
+    for(; i >= 0; --i) {
+        if(a_str[i] == '1') {
+            res += pow(2, pointIndex - 1 - i);
+        }
+    }
+    return res;
+}
+
 static double decimalStrToDouble(char* a_str, int a_size) //a_str has only numbers and symbols!!
 {
     int i = 0, countFpart = 0, isNegative = 0;
@@ -239,8 +270,6 @@ float CalcPhrase(char* a_infix)
                 ++i;
             }
             // must be '|'
-            printf("decimalStrToDouble(postfix + start, i - start): %f\n", decimalStrToDouble(postfix + start, i - start));
-
             StackDoublesPush(stack, decimalStrToDouble(postfix + start, i - start));
             ++i;
             curr = postfix[i];
@@ -254,7 +283,6 @@ float CalcPhrase(char* a_infix)
             op1 = StackDoublesPop(stack);
             op2 = StackDoublesPop(stack);
         }
-        printf("op1: %f, pt2: %f\n", op1, op2);
         switch (curr) {
         case '+':
             result = op2 + op1;
@@ -269,7 +297,6 @@ float CalcPhrase(char* a_infix)
             result = op2 / op1;
             break;  
         }
-        printf("result: %f\n", result);
         StackDoublesPush(stack, result);
         ++i;
     }
@@ -397,9 +424,25 @@ BEGIN_TEST(test1_decimalStr_to_double_negative)
     ASSERT_EQUAL(decimalStrToDouble(str3, strlen(str3)), -1);
 END_TEST
 
+BEGIN_TEST(test1_binaryStr_to_double)
+    char str[100] = "01001100000000000000000000000000";
+    int res1 = binaryStrToDouble(str, strlen(str));
+    TRACE(res1);
+    ASSERT_EQUAL(res1, 1275068416);
+END_TEST
+
+BEGIN_TEST(test2_binaryStr_to_double)
+    char str[100] = "110.101";
+    double res1 = binaryStrToDouble(str, strlen(str));
+    TRACE(res1);
+    ASSERT_EQUAL(res1, 6.625);
+END_TEST
+
 TEST_SUITE("tests")
     TEST(test1_decimalStr_to_double)
     TEST(test1_decimalStr_to_double_negative)
+    TEST(test1_binaryStr_to_double)
+    TEST(test2_binaryStr_to_double)
 
     TEST(test1_uninitialized)
     TEST(test2_num_of_words)
