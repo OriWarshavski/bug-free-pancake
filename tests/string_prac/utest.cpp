@@ -1,12 +1,63 @@
 #include "mu_test.h"
- 
+#include "stack_doubles.h"
+#include <string.h>
+#include <math.h>
+
 #define IS_CHAR_BLANK(c) ((c == ' ') || (c == '\t') ||(c == '\n'))
 
-#define MAX_LEN 30
-#define NOT_NUM(x) (x < '0' || x > '9')
+#define MAX_LEN 100
+#define IS_SPACE(x) (x == ' ' || x == '\t')
+#define IS_DIGIT(x) (x >= '0' && x <= '9')
 
-static int stringToNum(char* a_str, int a_size);
-static float calcOp(float a_num1, float a_num2, char a_opt);
+// static int checkIfEqual(char* a_toCheck, char* a_expected, int a_length) 
+// {
+//     int i = 0;
+//     while(a_toCheck[i] != '\0') {
+//         if(a_toCheck[i] != a_expected[i]) {
+//             return 0;
+//         }
+//         ++i;
+//     }
+//     //if expected is longer
+//     if(a_expected[i] != '\0') {
+//         return 0;
+//     }
+//     return 1;
+// }
+
+static double decimalStrToDouble(char* a_str, int a_size) //a_str has only numbers and symbols!!
+{
+    int i = 0, countFpart = 0, isNegative = 0;
+    double leftVal = 0.0, fracPart = 0.0;
+    double res;
+
+    if(a_str == NULL) {
+        return -1;
+    }
+
+    if(a_str[i] == '-') {
+        isNegative = 1;
+        ++i;
+    }
+
+    for(; (i < a_size) && (a_str[i] != '.'); ++i) {
+        leftVal *= 10;
+        leftVal += a_str[i] - '0';
+    }
+    if(a_str[i] == '.') {
+        ++i;
+        for(; i < a_size; ++i) {
+            ++countFpart;
+            fracPart *= 10;
+            fracPart += a_str[i] - '0';
+        }
+    }
+    res = (double)leftVal + (fracPart / pow(10, countFpart));
+    if(isNegative) {
+        res = -res;
+    }
+    return res;
+}
 
 int NumOfWords(char* a_phrase)
 {
@@ -34,73 +85,180 @@ int NumOfWords(char* a_phrase)
     return count;
 }
 
-float CalcPhrase(char* a_phrase)
+void StackPush(char* a_stack, char a_val) 
 {
-    int i, j, nums[MAX_LEN];
-    float result = 0;
-    char signs[MAX_LEN];
-    int start = 0, end = 0, countNums = 0, countSigns = 0;
-    if(a_phrase == NULL) {
+    int size;
+    if(a_stack == NULL) {
+        return;
+    }
+    size = strlen(a_stack);
+    if(size == MAX_LEN) {
+        return;
+    }
+    a_stack[size] = a_val;
+    a_stack[size + 1] = '\0';
+
+}
+char StackPop(char* a_stack)
+{
+    int size;
+    char save;
+    if(a_stack == NULL) {
         return -1;
-    }   
-    while((a_phrase[end] != '\0') && (countNums < MAX_LEN) && (a_phrase[start] != '\0')) {
-        if(NOT_NUM(a_phrase[end])) {
-            nums[countNums] = stringToNum(a_phrase + start, end - start);
-            signs[countSigns] = a_phrase[end];
-            ++countNums;
-            ++countSigns;
-            start = end + 1;
+    }
+    size = strlen(a_stack);
+    if(size == 0) {
+        return '\0';
+    }
+    save = a_stack[size - 1];
+    a_stack[size - 1] = '\0';
+    return save;
+}
+char StackTop(char* a_stack)
+{
+    int size;
+    if(a_stack == NULL) {
+        return -1;
+    }
+    size = strlen(a_stack);
+    if(size == 0) {
+        return '\0';
+    }
+    return a_stack[size - 1];
+}
+int StackIsEmpty(char* a_stack) 
+{
+    if(a_stack == NULL) {
+        return -1;
+    }
+    if(strlen(a_stack) == 0) {
+        return 1;
+    }
+    return 0;
+}
+
+int checkPreference(char a_symbol)
+{
+    int p = 0;
+    switch (a_symbol) {
+        case '+':
+        case '-':
+            p = 1;
+            break;
+
+        case '*':
+        case '/':
+            p = 2;
+            break;
+
+        default:
+            p = 0;
+            break;
+    }
+    return p;
+}
+
+void InfixToPostfix(char* a_infix, char* a_postfixOutput)
+{
+    char stack[MAX_LEN];
+    char curr, popped;
+    int size, i, postIndex = 0;
+    stack[0] = '\0';
+
+    size = strlen(a_infix);
+    for(i = 0; i < size; ++i) {
+        curr = a_infix[i];
+        if(IS_SPACE(curr)) {
+            continue;
         }
+        switch (curr) {
+        case '(':
+            StackPush(stack, curr);
+            break;
 
-        ++end;
+        case ')':
+            popped = StackPop(stack);
+            while(popped != '(') {
+                a_postfixOutput[postIndex] = popped;
+                ++postIndex;
+                popped = StackPop(stack);
+            }
+            break;
+
+        case '+':
+        case '-':
+        case '*':
+        case '/':
+            while(!StackIsEmpty(stack) && checkPreference(curr) <= checkPreference(StackTop(stack))) {
+                a_postfixOutput[postIndex] = StackPop(stack);
+                ++postIndex;
+            }
+            StackPush(stack, curr);
+            break;
+
+        default: //digits
+            while(IS_DIGIT(curr)) {
+                a_postfixOutput[postIndex] = curr;
+                ++postIndex;
+                ++i;
+                curr = a_infix[i];
+            }
+            a_postfixOutput[postIndex] = '|';
+            ++postIndex;
+            --i;
+            break;
+        }
     }
-    
-    if(countNums == MAX_LEN) {
+    while(!StackIsEmpty(stack)) {
+        a_postfixOutput[postIndex] = StackPop(stack);
+        ++postIndex;
+    }
+    a_postfixOutput[postIndex] = '\0';
+}
+
+float CalcPhrase(char* a_infix)
+{
+    char postfix[MAX_LEN];
+    StackDoubles* stack = StackDoublesCreate(MAX_LEN);
+    char curr;
+    int i = 0;
+    double op1, op2, result = 0;
+    if(a_infix == NULL) {
         return -1;
     }
 
-    if(a_phrase[end - 1] != '\0'){
-        nums[countNums] = stringToNum(a_phrase + start, end - start);
-        ++countNums;
-    }
+    InfixToPostfix(a_infix, postfix);
+    printf("%s\n", postfix);
 
-    result = nums[0];
+    while(postfix[i] != '\0') {
 
-    for(i = 0, j = 1; i < countSigns; ++i, ++j) {
-        result = calcOp(result, nums[j], signs[i]);
-    }
+        //push integers from postfix into the stack
+        curr = postfix[i];
+        while(IS_DIGIT(curr)) {
+            StackDoublesPush(stack, decimalStrToDouble(postfix + i , 1));
+            ++i;
+            curr = postfix[i];
+        }
+        //curr is a symbol
+        op1 = StackDoublesPop(stack);
+        op2 = StackDoublesPop(stack);
 
-    return result;
-}
-
-static int stringToNum(char* a_str, int a_size)
-{
-    int i;
-    int num = 0;
-    for(i = 0; i < a_size; ++i){
-        num *= 10;
-        num += a_str[i] - '0';
-    }
-    return num;
-}
-
-static float calcOp(float a_num1, float a_num2, char a_opt)
-{
-    float result;
-    switch(a_opt) {
-    case '+':
-        result =  a_num1 + a_num2;
-        break;
-    case '-':
-        result =  a_num1 - a_num2;
-        break;
-
-    case '/':
-        result =  a_num1 / a_num2;
-        break;
-    case '*':
-        result =  a_num1 * a_num2;
-        break;
+        switch (curr) {
+        case '+':
+            result = op2 + op1;
+            break;
+        case '-':
+            result = op2 - op1;
+            break;
+        case '*':
+            result = op2 * op1;
+            break;
+        case '/':
+            result = op2 / op1;
+            break;  
+        }
+        StackDoublesPush(stack, result);
+        ++i;
     }
     return result;
 }
@@ -130,23 +288,122 @@ BEGIN_TEST(test5_many_blanks)
 END_TEST
 
 /////////////////////////////////////////////////////////////////////////
-BEGIN_TEST(test_string_to_num)
-    char phrase[30] = "0102";
-    ASSERT_EQUAL(stringToNum(phrase, 4), 102);
-END_TEST
+// BEGIN_TEST(test_string_to_num)
+//     char phrase[30] = "0102";
+//     ASSERT_EQUAL(stringToNum(phrase, 4), 102);
+// END_TEST
 
 BEGIN_TEST(test1_calc_phrase)
-    char phrase[30] = "30/20";
-    ASSERT_EQUAL(CalcPhrase(phrase), 1.5);
+    char phrase[MAX_LEN] = "2 + 4*(5 +5)/7";
+    double expected = (40.0 / 7.0) + 2.0;
+    double res;
+    expected = floor(10000*expected)/10000;
+    res = CalcPhrase(phrase);
+    res = floor(10000*res)/10000;
+    TRACE(res);
+    ASSERT_EQUAL(res, expected);
+END_TEST
+
+BEGIN_TEST(test2_calc_phrase)
+    char phrase[MAX_LEN] = "6 + 7 - 3 * (3 - 5)";
+    double expected = 6+7+6;
+    double res;
+    expected = floor(10000*expected)/10000;
+    res = CalcPhrase(phrase);
+    res = floor(10000*res)/10000;
+    TRACE(res);
+    ASSERT_EQUAL(res, expected);
+END_TEST
+
+BEGIN_TEST(test0_Stack_uninitialized)
+    StackDoublesIsEmpty(NULL);
+    ASSERT_PASS();
+END_TEST
+
+BEGIN_TEST(test1_Stack)
+    StackDoubles* p = StackDoublesCreate(MAX_LEN);
+    ASSERT_EQUAL(StackDoublesIsEmpty(p), 1);
+    StackDoublesDestroy(&p);
+END_TEST
+
+BEGIN_TEST(test2_Stack_doubleFree)
+    StackDoubles* p = StackDoublesCreate(MAX_LEN);
+    StackDoublesDestroy(&p);
+    StackDoublesDestroy(&p);
+    ASSERT_PASS();
+END_TEST
+
+BEGIN_TEST(test3_Stack_push_pop_top)
+    StackDoubles* p = StackDoublesCreate(MAX_LEN);
+    StackDoublesPush(p, 1.2);
+    StackDoublesPush(p, 7.8);
+    StackDoublesPush(p, 12.13);
+    ASSERT_EQUAL(StackDoublesSize(p), 3);
+
+    ASSERT_EQUAL(StackDoublesTop(p), 12.13);
+    ASSERT_EQUAL(StackDoublesPop(p), 12.13);
+    ASSERT_EQUAL(StackDoublesSize(p), 2);
+    ASSERT_EQUAL(StackDoublesIsEmpty(p), 0);
+
+    ASSERT_EQUAL(StackDoublesTop(p), 7.8);
+    ASSERT_EQUAL(StackDoublesPop(p), 7.8);
+    ASSERT_EQUAL(StackDoublesSize(p), 1);
+
+    ASSERT_EQUAL(StackDoublesPop(p), 1.2);
+    ASSERT_EQUAL(StackDoublesSize(p), 0);
+    ASSERT_EQUAL(StackDoublesIsEmpty(p), 1);
+
+    StackDoublesDestroy(&p);
+END_TEST
+
+BEGIN_TEST(test1_decimalStr_to_double)
+    char str[30] = "12.34";
+    char str2[30] = "0.012";
+    char str3[30] = "1";
+
+    double res1 = decimalStrToDouble(str, strlen(str));
+    double res2 = decimalStrToDouble(str2, strlen(str2));
+
+    TRACE(res1);
+    TRACE(res2);
+
+    ASSERT_EQUAL(res1, 12.34);
+    ASSERT_EQUAL(res2, 0.012);
+    ASSERT_EQUAL(decimalStrToDouble(str3, 1), 1);
+END_TEST
+
+BEGIN_TEST(test1_decimalStr_to_double_negative)
+    char str[30] = "-12.34";
+    char str2[30] = "-0.012";
+    char str3[30] = "-1";
+
+    double res1 = decimalStrToDouble(str, strlen(str));
+    double res2 = decimalStrToDouble(str2, strlen(str2));
+
+    TRACE(res1);
+    TRACE(res2);
+
+    ASSERT_EQUAL(res1, -12.34);
+    ASSERT_EQUAL(res2, -0.012);
+    ASSERT_EQUAL(decimalStrToDouble(str3, strlen(str3)), -1);
 END_TEST
 
 TEST_SUITE("tests")
+    TEST(test1_decimalStr_to_double)
+    TEST(test1_decimalStr_to_double_negative)
+
     TEST(test1_uninitialized)
     TEST(test2_num_of_words)
     TEST(test3_one_word)
     TEST(test4_blank_first)
     TEST(test5_many_blanks)
 
-    TEST(test_string_to_num)
+    TEST(test0_Stack_uninitialized)
+    TEST(test1_Stack)
+    TEST(test2_Stack_doubleFree)
+    TEST(test3_Stack_push_pop_top)
+
+    // TEST(test_string_to_num)
     TEST(test1_calc_phrase)
+    TEST(test2_calc_phrase)
 END_SUITE
