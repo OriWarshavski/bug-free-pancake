@@ -228,7 +228,7 @@ float CalcPhrase(char* a_infix)
     }
 
     InfixToPostfix(a_infix, postfix);
-    printf("%s\n", postfix);
+    printf("postfix: %s\n", postfix);
 
     while(postfix[i] != '\0') {
         curr = postfix[i];
@@ -239,14 +239,22 @@ float CalcPhrase(char* a_infix)
                 ++i;
             }
             // must be '|'
+            printf("decimalStrToDouble(postfix + start, i - start): %f\n", decimalStrToDouble(postfix + start, i - start));
+
             StackDoublesPush(stack, decimalStrToDouble(postfix + start, i - start));
             ++i;
             curr = postfix[i];
         }
         //curr is a symbol
-        op1 = StackDoublesPop(stack);
-        op2 = StackDoublesPop(stack);
-
+        if(StackDoublesSize(stack) < 2) {
+            op1 = StackDoublesPop(stack);
+            op2 = 0;
+        }
+        else {
+            op1 = StackDoublesPop(stack);
+            op2 = StackDoublesPop(stack);
+        }
+        printf("op1: %f, pt2: %f\n", op1, op2);
         switch (curr) {
         case '+':
             result = op2 + op1;
@@ -261,6 +269,7 @@ float CalcPhrase(char* a_infix)
             result = op2 / op1;
             break;  
         }
+        printf("result: %f\n", result);
         StackDoublesPush(stack, result);
         ++i;
     }
@@ -292,14 +301,10 @@ BEGIN_TEST(test5_many_blanks)
 END_TEST
 
 /////////////////////////////////////////////////////////////////////////
-// BEGIN_TEST(test_string_to_num)
-//     char phrase[30] = "0102";
-//     ASSERT_EQUAL(stringToNum(phrase, 4), 102);
-// END_TEST
 
 BEGIN_TEST(test1_calc_phrase)
-    char phrase[MAX_LEN] = "20 + 4*(15 + 5)/7";
-    double expected = (80.0 / 7.0) + 20.0;
+    char phrase[MAX_LEN] = "-20 + 4*(15 + 5)/7";
+    double expected = (80.0 / 7.0) - 20.0;
     double res;
     expected = floor(10000*expected)/10000;
     res = CalcPhrase(phrase);
@@ -313,7 +318,7 @@ BEGIN_TEST(test2_calc_phrase)
     double expected = 6.5+1.2+6.0;
     double res;
     res = CalcPhrase(phrase);
-    
+
     res = roundf(10000*res)/10000;
     expected = roundf(10000*expected)/10000;
     ASSERT_EQUAL(res, expected);
