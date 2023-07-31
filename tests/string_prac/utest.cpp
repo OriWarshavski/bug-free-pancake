@@ -9,6 +9,14 @@
 #define IS_SPACE(x) (x == ' ' || x == '\t')
 #define IS_DIGIT(x) (x >= '0' && x <= '9')
 
+#define IS_LETTER(x) (x >= 'A' && x <= 'F')
+
+typedef enum FORMAT {
+    BINARY = 2,
+    DECIMAL = 10,
+    HEX = 16
+} FORMAT;
+
 // static int checkIfEqual(char* a_toCheck, char* a_expected, int a_length) 
 // {
 //     int i = 0;
@@ -24,6 +32,64 @@
 //     }
 //     return 1;
 // }
+double convertStrToDouble(char* a_str, int a_size, FORMAT a_format)
+{
+    int i, pointIndex, isPoint = 0, isNegative = 0;
+    double res = 0, power;
+    char cur;
+
+    if(a_str == NULL || a_size <= 0){
+        return -1;
+    }
+
+    if(a_str[0] == '-') {
+        ++a_str;
+        --a_size;
+        isNegative = 1;
+    }
+
+    pointIndex = a_size;
+    //find point index
+    for(i = 0; i < a_size; ++i) {
+        if(a_str[i] == '.') {
+            pointIndex = i;
+            isPoint = 1;
+            break;
+        }
+    }
+    i = a_size - 1;
+    //fraction part
+    if(isPoint) {
+        for( ; i >= pointIndex; --i) {
+            cur = a_str[i];
+
+            if(IS_DIGIT(cur) && cur != '0') {
+                power = pow((int)a_format, pointIndex - i);
+                res += (power * (cur - '0'));
+            }
+        }
+    }
+    //integral part
+    for(; i >= 0; --i) {
+        cur = a_str[i];
+        printf("%c\n", cur);
+
+        if(IS_LETTER(cur)) {
+            power = pow((int)a_format, pointIndex - i - 1);
+            res += (power * (cur - 'A' + 10));
+        }
+        else if(IS_DIGIT(cur) && cur != '0') {
+            power = pow((int)a_format, pointIndex - i - 1);
+            res += (power * (cur - '0'));
+        }
+    }
+
+    if(isNegative) {
+        res = -res;
+    }
+
+    return res;
+}
 
 static double binaryStrToDouble(char* a_str, int a_size)
 {
@@ -438,11 +504,107 @@ BEGIN_TEST(test2_binaryStr_to_double)
     ASSERT_EQUAL(res1, 6.625);
 END_TEST
 
+BEGIN_TEST(test1_convert_by_format_to_double)
+    char str[100] = "1010";
+    double res1 = convertStrToDouble(str, strlen(str), BINARY);
+    TRACE(res1);
+    ASSERT_EQUAL(res1, 10);
+END_TEST
+
+BEGIN_TEST(test2_convert_by_format_to_double)
+    char str[100] = "01001100000000000000000000000000";
+    double res1 = convertStrToDouble(str, strlen(str), BINARY);
+    TRACE(res1);
+    ASSERT_EQUAL(res1, 1275068416);
+END_TEST
+
+BEGIN_TEST(test3_convert_by_format_to_double)
+    char str[100] = "110.101";
+    double res1 = convertStrToDouble(str, strlen(str), BINARY);
+    TRACE(res1);
+    ASSERT_EQUAL(res1, 6.625);
+END_TEST
+
+BEGIN_TEST(test4_convert_by_format_to_double)
+    char str[100] = "123";
+    double res1 = convertStrToDouble(str, strlen(str), DECIMAL);
+    TRACE(res1);
+    ASSERT_EQUAL(res1, 123);
+END_TEST
+
+BEGIN_TEST(test5_convert_by_format_to_double)
+    char str[100] = "12.34";
+    double res1 = convertStrToDouble(str, strlen(str), DECIMAL);
+    TRACE(res1);
+    ASSERT_EQUAL(res1, 12.34);
+END_TEST
+
+BEGIN_TEST(test6_convert_by_format_to_double)
+    char str[100] = "0.00123";
+    double res1 = convertStrToDouble(str, strlen(str), DECIMAL);
+    TRACE(res1);
+    ASSERT_EQUAL(res1, 0.00123);
+END_TEST
+
+BEGIN_TEST(test7_convert_by_format_to_double)
+    char str[100] = "-123";
+    double res1 = convertStrToDouble(str, strlen(str), DECIMAL);
+    TRACE(res1);
+    ASSERT_EQUAL(res1, -123);
+END_TEST
+
+BEGIN_TEST(test8_convert_by_format_to_double)
+    char str[100] = "-12.3";
+    double res1 = convertStrToDouble(str, strlen(str), DECIMAL);
+    TRACE(res1);
+    ASSERT_EQUAL(res1, -12.3);
+END_TEST
+
+BEGIN_TEST(test9_convert_by_format_to_double)
+    char str[100] = "-0.0001";
+    double res1 = convertStrToDouble(str, strlen(str), DECIMAL);
+    TRACE(res1);
+    ASSERT_EQUAL(res1, -0.0001);
+END_TEST
+
+BEGIN_TEST(test10_convert_by_format_to_double)
+    char str[100] = "11E8";
+    double res1 = convertStrToDouble(str, strlen(str), HEX);
+    TRACE(res1);
+    ASSERT_EQUAL(res1, 4584);
+END_TEST
+
+BEGIN_TEST(test11_convert_by_format_to_double)
+    char str[100] = "C.8";
+    double res1 = convertStrToDouble(str, strlen(str), HEX);
+    TRACE(res1);
+    ASSERT_EQUAL(res1, 12.5);
+END_TEST
+
+BEGIN_TEST(test12_convert_by_format_to_double)
+    char str[100] = "FFFFFFFF";
+    double res1 = convertStrToDouble(str, strlen(str), HEX);
+    TRACE(res1);
+    ASSERT_EQUAL(res1, -1);
+END_TEST
+
 TEST_SUITE("tests")
     TEST(test1_decimalStr_to_double)
     TEST(test1_decimalStr_to_double_negative)
     TEST(test1_binaryStr_to_double)
     TEST(test2_binaryStr_to_double)
+    TEST(test1_convert_by_format_to_double)
+    TEST(test2_convert_by_format_to_double)
+    TEST(test3_convert_by_format_to_double) 
+    TEST(test4_convert_by_format_to_double) 
+    TEST(test5_convert_by_format_to_double)
+    TEST(test6_convert_by_format_to_double)
+    TEST(test7_convert_by_format_to_double)
+    TEST(test8_convert_by_format_to_double)
+    TEST(test9_convert_by_format_to_double)
+    TEST(test10_convert_by_format_to_double)
+    TEST(test11_convert_by_format_to_double)
+    TEST(test12_convert_by_format_to_double)
 
     TEST(test1_uninitialized)
     TEST(test2_num_of_words)
