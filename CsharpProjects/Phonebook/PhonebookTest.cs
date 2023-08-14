@@ -11,12 +11,12 @@ namespace Phonebook
     {
         public static void Main()
         {
-            //TestPrintBook();
-            //TestGetDetailsById();
-            //TestGetDetailsByIdIndex();
+            TestPrintBook();
+            TestGetDetailsById();
+            TestGetDetailsByIdIndex();
             TestGetDetailsByName();
-            //TestHowManyHasPhonePrefix();
-            //TestSearchContact();
+            TestHowManyHasPhonePrefix();
+            TestSearchContact();
         }
 
         static void TestPrintBook()
